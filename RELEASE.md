@@ -11,6 +11,7 @@
 *   Moved aggregation from https://github.com/google-parfait/federated-compute
     to TFF to consolidate the federated language and remove circular
     dependencies.
+*   Updated to use a hermetic Python environment.
 
 ## Breaking Changes
 

@@ -84,7 +84,6 @@ git_repository(
         # TODO: b/263201501 - Make DTensor C++ API public and remove this patch.
         "//third_party/tensorflow:dtensor_internal_visibility.patch",
         "//third_party/tensorflow:internal_visibility.patch",
-        "//third_party/tensorflow:python_toolchain.patch",
         "//third_party/tensorflow:tf2xla_visibility.patch",
     ],
     remote = "https://github.com/tensorflow/tensorflow.git",
@@ -140,6 +139,65 @@ git_repository(
     remote = "https://github.com/protocolbuffers/upb.git",
     commit = "e4635f223e7d36dfbea3b722a4ca4807a7e882e2",
 )
+
+#
+# Register a clang C++ toolchain.
+#
+
+http_archive(
+    name = "toolchains_llvm",
+    sha256 = "b7cd301ef7b0ece28d20d3e778697a5e3b81828393150bed04838c0c52963a01",
+    strip_prefix = "toolchains_llvm-0.10.3",
+    url = "https://github.com/grailbio/bazel-toolchain/releases/download/0.10.3/toolchains_llvm-0.10.3.tar.gz",
+)
+
+load("@toolchains_llvm//toolchain:deps.bzl", "bazel_toolchain_dependencies")
+
+bazel_toolchain_dependencies()
+
+load("@toolchains_llvm//toolchain:rules.bzl", "llvm_toolchain")
+
+llvm_toolchain(
+    name = "llvm_toolchain",
+    llvm_version = "13.0.0",
+)
+
+load("@llvm_toolchain//:toolchains.bzl", "llvm_register_toolchains")
+
+llvm_register_toolchains()
+
+#
+# Register a Python toolchain.
+#
+
+load("@rules_python//python:repositories.bzl", "py_repositories")
+
+py_repositories()
+
+load("@rules_python//python:repositories.bzl", "python_register_toolchains")
+
+python_register_toolchains(
+    name = "python",
+    ignore_root_user_error = True,
+    python_version = "3.11",
+)
+
+#
+# Python dependencies.
+#
+
+load("@python//:defs.bzl", "interpreter")
+load("@rules_python//python:pip.bzl", "pip_parse")
+
+pip_parse(
+    name = "pypi",
+    python_interpreter_target = interpreter,
+    requirements_lock = "//:requirements.txt",
+)
+
+load("@pypi//:requirements.bzl", "install_deps")
+
+install_deps()
 
 #
 # Transitive dependencies, grouped by direct dependency.
